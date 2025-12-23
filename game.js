@@ -727,8 +727,8 @@ function updatePlayer() {
     
     // Движение через левый джойстик
     if (joystickActive) {
-        player.x += joystickX * speed * 1;
-        player.y += joystickY * speed * 1;
+        player.x += joystickX * speed * 1,5;
+        player.y += joystickY * speed * 1,5;
     }
     
     // Поворот через правый джойстик
