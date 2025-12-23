@@ -2,15 +2,27 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Онлайн Стрелялка - Выбор города</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Мобильная Стрелялка</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Инлайн стили для мобильной адаптации */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            background: #000;
+        }
+    </style>
 </head>
 <body>
     <!-- Стартовый экран -->
     <div class="screen" id="startScreen">
         <div class="city-select">
-            <h1>Онлайн Стрелялка</h1>
+            <h1>Мобильная Стрелялка</h1>
             <h2>Выберите город для игры</h2>
         </div>
         
@@ -39,7 +51,7 @@
     <!-- Игровой экран -->
     <div class="screen" id="gameScreen">
         <div class="game-container">
-            <canvas id="gameCanvas" width="1400" height="700"></canvas>
+            <canvas id="gameCanvas"></canvas>
             
             <!-- Фоновое изображение -->
             <div id="backgroundOverlay"></div>
@@ -82,33 +94,31 @@
             
             <!-- Мобильное управление -->
             <div class="mobile-controls" id="mobileControls">
+                <!-- Джойстик для движения -->
                 <div class="joystick-container">
                     <div class="joystick" id="movementJoystick">
                         <div class="joystick-handle"></div>
                     </div>
-                    <div class="joystick-label">Движение</div>
                 </div>
                 
+                <!-- Кнопки оружия сверху -->
+                <div class="weapon-buttons">
+                    <div class="weapon-button" data-weapon="pistol">П</div>
+                    <div class="weapon-button" data-weapon="rifle">В</div>
+                    <div class="weapon-button" data-weapon="shotgun">Д</div>
+                </div>
+                
+                <!-- Основные кнопки действий -->
                 <div class="action-buttons">
                     <div class="action-button shoot-button" id="shootButton">🔫</div>
                     <div class="action-button reload-button" id="reloadButton">↻</div>
                     <div class="action-button sprint-button" id="sprintButton">⚡</div>
                 </div>
-                
-                <div class="weapon-buttons">
-                    <div class="weapon-button" data-weapon="pistol">1</div>
-                    <div class="weapon-button" data-weapon="rifle">2</div>
-                    <div class="weapon-button" data-weapon="shotgun">3</div>
-                </div>
-            </div>
-            
-            <div class="mini-map">
-                <canvas id="miniMapCanvas" width="200" height="150"></canvas>
             </div>
             
             <div class="death-screen" id="deathScreen">
                 <h2>💀 ВЫ УМЕРЛИ 💀</h2>
-                <p>Вы продержались: <span id="survivalTime">0</span> секунд</p>
+                <p>Вы продержались: <span id="survivalTime">0</span> сек</p>
                 <p>Убито врагов: <span id="killsCount">0</span></p>
                 <button class="restart-button" id="restartButton">Играть снова</button>
             </div>
@@ -118,7 +128,6 @@
     <!-- Аудио элементы -->
     <audio id="backgroundMusic" loop preload="auto">
         <source src="" type="audio/mp3">
-        Ваш браузер не поддерживает аудио
     </audio>
     
     <audio id="shootSound" preload="auto">
