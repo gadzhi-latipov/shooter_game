@@ -185,7 +185,7 @@ function initSounds() {
 function preloadAllSounds() {
     const soundElements = [
         pistolSound, rifleSound, shotgunSound,
-        reloadSound, hitSound, deathSound, killSound
+        reloadSound, hitSound, deathSound, killSound, weaponSwitchSound
     ];
     
     soundElements.forEach(sound => {
@@ -323,14 +323,16 @@ function initDOMElements() {
     //звук смены оружия 
     weaponSwitchSound = document.getElementById('weaponSwitchSound');
 
+// В конце initDOMElements() добавьте:
+initSounds(); // Инициализировать звуки
+preloadAllSounds(); // Предзагрузить все звуки
 
-
-    // Добавляем функцию для смены звуков оружия (опционально, если нужно менять звуки динамически)
-function changeWeaponSound(weaponType, soundUrl) {
-    if (!soundEnabled) return;
-    
-    let soundElement;
-    switch(weaponType) {
+     // Добавляем функцию для смены звуков оружия (опционально, если нужно менять звуки динамически)
+     function changeWeaponSound(weaponType, soundUrl) {
+        if (!soundEnabled) return;
+        
+        let soundElement;
+        switch(weaponType) {
         case 'pistol':
             soundElement = pistolSound;
             break;
@@ -470,10 +472,17 @@ function initGame() {
 }
 
 // Функция смены оружия
+
 function switchWeapon() {
     weaponIndex = (weaponIndex + 1) % weaponOrder.length;
     currentWeapon = weaponOrder[weaponIndex];
     updateWeaponUI();
+    
+    // Воспроизвести звук смены оружия
+    if (soundEnabled && weaponSwitchSound) {
+        weaponSwitchSound.currentTime = 0;
+        weaponSwitchSound.play().catch(e => console.log("Ошибка звука смены оружия:", e));
+    }
     
     // Визуальная обратная связь
     if (weaponSwitchButton) {
@@ -481,28 +490,6 @@ function switchWeapon() {
         setTimeout(() => {
             if (weaponSwitchButton) weaponSwitchButton.style.transform = 'scale(1)';
         }, 100);
-    }
-    // Воспроизвести звук смены оружия
-if (soundEnabled && weaponSwitchSound) {
-    weaponSwitchSound.currentTime = 0;
-    weaponSwitchSound.play().catch(e => console.log("Ошибка звука смены оружия:", e));
-}
-    // Можно добавить короткий звук переключения оружия
-    if (soundEnabled) {
-        // Быстрое воспроизведение звука клика или переключения
-        try {
-            if (shootSound) {
-                shootSound.volume = 0.2;
-                shootSound.currentTime = 0.05; // Начинаем с небольшой задержки для короткого звука
-                shootSound.play().then(() => {
-                    setTimeout(() => {
-                        if (shootSound) shootSound.pause();
-                    }, 100);
-                }).catch(e => console.log("Ошибка звука переключения:", e));
-            }
-        } catch (error) {
-            console.log("Ошибка при переключении оружия:", error);
-        }
     }
 }
 // Настройка мобильного управления с двумя джойстиками
