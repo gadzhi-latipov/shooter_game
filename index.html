@@ -6,7 +6,6 @@
     <title>Мобильная Стрелялка</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Инлайн стили для мобильной адаптации */
         body, html {
             margin: 0;
             padding: 0;
@@ -79,7 +78,7 @@
             </div>
             
             <div class="players-list">
-                <h3>Игроки в комнате:</h3>
+                <h3>Игроки:</h3>
                 <div id="playersList"></div>
             </div>
             
@@ -94,21 +93,23 @@
             
             <!-- Мобильное управление -->
             <div class="mobile-controls" id="mobileControls">
-                <!-- Джойстик для движения -->
-                <div class="joystick-container">
+                <!-- Левый джойстик для движения -->
+                <div class="joystick-container left-joystick">
                     <div class="joystick" id="movementJoystick">
                         <div class="joystick-handle"></div>
                     </div>
+                    <div class="joystick-label">Движение</div>
                 </div>
                 
-                <!-- Кнопки оружия сверху -->
-                <div class="weapon-buttons">
-                    <div class="weapon-button" data-weapon="pistol">П</div>
-                    <div class="weapon-button" data-weapon="rifle">В</div>
-                    <div class="weapon-button" data-weapon="shotgun">Д</div>
+                <!-- Правый джойстик для прицеливания -->
+                <div class="joystick-container right-joystick">
+                    <div class="joystick" id="aimJoystick">
+                        <div class="joystick-handle"></div>
+                    </div>
+                    <div class="joystick-label">Прицел</div>
                 </div>
                 
-                <!-- Основные кнопки действий -->
+                <!-- Кнопки действий -->
                 <div class="action-buttons">
                     <div class="action-button shoot-button" id="shootButton">🔫</div>
                     <div class="action-button reload-button" id="reloadButton">↻</div>

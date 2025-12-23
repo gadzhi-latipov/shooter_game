@@ -411,20 +411,27 @@ h2 {
     display: block;
 }
 
-/* Увеличенный джойстик для движения */
+/* Джойстики */
 .joystick-container {
     position: absolute;
-    bottom: 30px;
-    left: 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
     pointer-events: auto;
+    bottom: 120px; /* Подняты выше */
+}
+
+.joystick-container.left-joystick {
+    left: 30px;
+}
+
+.joystick-container.right-joystick {
+    right: 30px;
 }
 
 .joystick {
-    width: 120px;
-    height: 120px;
+    width: 110px;
+    height: 110px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 50%;
     border: 3px solid #4cc9f0;
@@ -435,8 +442,8 @@ h2 {
 
 .joystick-handle {
     position: absolute;
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     background: rgba(76, 201, 240, 0.9);
     border-radius: 50%;
     top: 50%;
@@ -447,70 +454,35 @@ h2 {
     transition: transform 0.1s ease;
 }
 
-/* Кнопки оружия */
-.weapon-buttons {
-    position: absolute;
-    top: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 12px;
-    pointer-events: auto;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 8px 12px;
-    border-radius: 15px;
-    border: 2px solid #4cc9f0;
-    backdrop-filter: blur(5px);
-}
-
-.weapon-button {
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    border: 2px solid #4cc9f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
+.joystick-label {
+    color: #4cc9f0;
+    font-size: 14px;
     font-weight: bold;
-    cursor: pointer;
-    transition: all 0.1s;
-    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+    margin-top: 8px;
 }
 
-.weapon-button.active {
-    background: rgba(76, 201, 240, 0.4);
-    border-color: #f72585;
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(76, 201, 240, 0.5);
-}
-
-.weapon-button:active {
-    transform: scale(0.95);
-}
-
-/* Основные кнопки действий */
+/* Кнопки действий */
 .action-buttons {
     position: absolute;
     bottom: 30px;
-    right: 30px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    gap: 20px;
     pointer-events: auto;
 }
 
 .action-button {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 50%;
     border: 3px solid #4cc9f0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 24px;
     cursor: pointer;
     transition: all 0.1s;
     touch-action: none;
@@ -526,19 +498,19 @@ h2 {
 .shoot-button {
     border-color: #f72585;
     background: rgba(247, 37, 133, 0.25);
-    font-size: 32px;
+    font-size: 28px;
 }
 
 .reload-button {
     border-color: #4361ee;
     background: rgba(67, 97, 238, 0.25);
-    font-size: 24px;
+    font-size: 20px;
 }
 
 .sprint-button {
     border-color: #4cc9f0;
     background: rgba(76, 201, 240, 0.25);
-    font-size: 24px;
+    font-size: 20px;
 }
 
 /* Адаптация для очень маленьких экранов */
@@ -570,13 +542,20 @@ h2 {
     }
     
     .joystick-container {
-        bottom: 20px;
+        bottom: 100px;
+    }
+    
+    .joystick-container.left-joystick {
         left: 20px;
     }
     
+    .joystick-container.right-joystick {
+        right: 20px;
+    }
+    
     .joystick {
-        width: 100px;
-        height: 100px;
+        width: 95px;
+        height: 95px;
     }
     
     .joystick-handle {
@@ -584,32 +563,23 @@ h2 {
         height: 40px;
     }
     
+    .joystick-label {
+        font-size: 12px;
+    }
+    
     .action-buttons {
         bottom: 20px;
-        right: 20px;
-        gap: 12px;
+        gap: 15px;
     }
     
     .action-button {
-        width: 70px;
-        height: 70px;
-        font-size: 24px;
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
     }
     
     .shoot-button {
-        font-size: 28px;
-    }
-    
-    .weapon-buttons {
-        top: 80px;
-        gap: 10px;
-        padding: 6px 10px;
-    }
-    
-    .weapon-button {
-        width: 45px;
-        height: 45px;
-        font-size: 16px;
+        font-size: 24px;
     }
     
     .death-screen {
@@ -627,18 +597,20 @@ h2 {
 
 /* Портретная ориентация */
 @media (orientation: portrait) and (max-height: 700px) {
-    .weapon-buttons {
-        top: 70px;
+    .joystick-container {
+        bottom: 90px;
     }
     
-    .joystick-container {
-        bottom: 15px;
+    .joystick-container.left-joystick {
         left: 15px;
+    }
+    
+    .joystick-container.right-joystick {
+        right: 15px;
     }
     
     .action-buttons {
         bottom: 15px;
-        right: 15px;
     }
 }
 
@@ -666,26 +638,21 @@ h2 {
         font-size: 9px;
     }
     
-    .weapon-buttons {
-        top: 50px;
-        gap: 8px;
-        padding: 5px 8px;
-    }
-    
-    .weapon-button {
-        width: 40px;
-        height: 40px;
-        font-size: 14px;
-    }
-    
     .joystick-container {
-        bottom: 15px;
+        bottom: 80px;
+    }
+    
+    .joystick-container.left-joystick {
         left: 15px;
     }
     
+    .joystick-container.right-joystick {
+        right: 15px;
+    }
+    
     .joystick {
-        width: 90px;
-        height: 90px;
+        width: 85px;
+        height: 85px;
     }
     
     .joystick-handle {
@@ -695,18 +662,17 @@ h2 {
     
     .action-buttons {
         bottom: 15px;
-        right: 15px;
-        gap: 10px;
+        gap: 12px;
     }
     
     .action-button {
-        width: 60px;
-        height: 60px;
-        font-size: 20px;
+        width: 55px;
+        height: 55px;
+        font-size: 18px;
     }
     
     .shoot-button {
-        font-size: 24px;
+        font-size: 20px;
     }
 }
 

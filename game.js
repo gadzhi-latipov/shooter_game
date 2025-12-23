@@ -47,39 +47,19 @@ const weapons = {
     }
 };
 
-// МЕДИА-КОНФИГУРАЦИЯ (Здесь вы можете вставлять свои файлы)
+// МЕДИА-КОНФИГУРАЦИЯ
 const mediaConfig = {
-    // Фоновые изображения для разных городов
     backgrounds: {
         moscow: 'https://images.unsplash.com/photo-1513326738677-b964603b136d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1400&q=80',
         petersburg: 'https://images.unsplash.com/photo-1558661093-53d5f71c8d7a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1400&q=80'
     },
-    
-    // Звуковые эффекты (укажите пути к вашим файлам)
     sounds: {
         backgroundMusic: 'audio/background.mp3',
         shoot: 'audio/shoot.mp3',
         reload: 'audio/reload.mp3',
         hit: 'audio/hit.mp3',
         death: 'audio/death.mp3',
-        kill: 'audio/kill.mp3',
-        levelUp: 'audio/level-up.mp3'
-    },
-    
-    // Анимационные спрайты (опционально)
-    animations: {
-        blood: 'animations/blood.png',
-        explosion: 'animations/explosion.png',
-        muzzleFlash: 'animations/muzzle-flash.png'
-    },
-    
-    // Текстовые сообщения для событий
-    messages: {
-        newWave: "Новая волна врагов!",
-        bossComing: "⚠️ Приближается босс! ⚠️",
-        levelComplete: "Уровень пройден!",
-        powerUp: "Вы нашли улучшение!",
-        warning: "Будьте осторожны!"
+        kill: 'audio/kill.mp3'
     }
 };
 
@@ -94,19 +74,20 @@ let gameRunning = false;
 let startTime = 0;
 let kills = 0;
 let playerId = null;
-let keys = {};
-let mouseX = 0;
-let mouseY = 0;
 let currentWeapon = 'pistol';
 let isReloading = false;
 let gameLoopId = null;
-let isMobile = true; // Принудительно для мобильных
+let isMobile = true;
 let soundEnabled = true;
 let musicEnabled = true;
+
+// Джойстики
 let joystickActive = false;
+let aimJoystickActive = false;
 let joystickX = 0;
 let joystickY = 0;
-let lowHealthWarningShown = false;
+let aimJoystickX = 0;
+let aimJoystickY = 0;
 
 // DOM элементы
 let startScreen, gameScreen, startButton, cityCards, currentCitySpan;
@@ -114,15 +95,14 @@ let playerHealthFill, playersList, deathScreen, survivalTimeSpan, killsCountSpan
 let restartButton, moscowCount, petersburgCount, ammoCount, currentWeaponSpan;
 let gameCanvas, ctx, backgroundOverlay, animationContainer, textMessages;
 let mobileControls, soundToggle, musicToggle;
-let movementJoystick, joystickHandle, shootButton;
-let reloadButton, sprintButton, weaponButtons;
+let movementJoystick, aimJoystick, joystickHandle, aimJoystickHandle;
+let shootButton, reloadButton, sprintButton;
 
 // Аудио элементы
-let backgroundMusic, shootSound, reloadSound, hitSound, deathSound, killSound, levelUpSound;
+let backgroundMusic, shootSound, reloadSound, hitSound, deathSound, killSound;
 
 // Определение устройства
 function detectDevice() {
-    // Принудительно устанавливаем мобильный режим
     isMobile = true;
     console.log(`Мобильный режим включен`);
     
@@ -131,7 +111,6 @@ function detectDevice() {
 
 // Инициализация звуков
 function initSounds() {
-    // Устанавливаем пути к звукам из конфигурации
     if (mediaConfig.sounds.backgroundMusic && backgroundMusic) {
         backgroundMusic.src = mediaConfig.sounds.backgroundMusic;
     }
@@ -150,21 +129,16 @@ function initSounds() {
     if (mediaConfig.sounds.kill && killSound) {
         killSound.src = mediaConfig.sounds.kill;
     }
-    if (mediaConfig.sounds.levelUp && levelUpSound) {
-        levelUpSound.src = mediaConfig.sounds.levelUp;
-    }
     
-    // Настройка громкости
     if (backgroundMusic) backgroundMusic.volume = 0.3;
     if (shootSound) shootSound.volume = 0.5;
     if (reloadSound) reloadSound.volume = 0.3;
     if (hitSound) hitSound.volume = 0.4;
     if (deathSound) deathSound.volume = 0.6;
     if (killSound) killSound.volume = 0.5;
-    if (levelUpSound) levelUpSound.volume = 0.5;
 }
 
-// Воспроизведение звука с проверкой
+// Воспроизведение звука
 function playSound(soundElement) {
     if (soundEnabled && soundElement) {
         soundElement.currentTime = 0;
@@ -201,45 +175,6 @@ function setBackground(city) {
     if (backgroundOverlay && mediaConfig.backgrounds[city]) {
         backgroundOverlay.style.backgroundImage = `url('${mediaConfig.backgrounds[city]}')`;
     }
-}
-
-// Создание анимации
-function createAnimation(x, y, type, size = 50) {
-    if (!animationContainer) return;
-    
-    const anim = document.createElement('div');
-    anim.className = `animation ${type}`;
-    anim.style.left = `${x - size/2}px`;
-    anim.style.top = `${y - size/2}px`;
-    anim.style.width = `${size}px`;
-    anim.style.height = `${size}px`;
-    
-    animationContainer.appendChild(anim);
-    
-    // Удаление анимации после завершения
-    setTimeout(() => {
-        if (anim.parentNode) {
-            anim.remove();
-        }
-    }, 1000);
-}
-
-// Показ текстового сообщения
-function showMessage(text, type = 'normal') {
-    if (!textMessages) return;
-    
-    const message = document.createElement('div');
-    message.className = `message ${type}`;
-    message.textContent = text;
-    
-    textMessages.appendChild(message);
-    
-    // Удаление сообщения через 3 секунды
-    setTimeout(() => {
-        if (message.parentNode) {
-            message.remove();
-        }
-    }, 3000);
 }
 
 // Обновление счетчиков игроков
@@ -280,22 +215,23 @@ function initDOMElements() {
     hitSound = document.getElementById('hitSound');
     deathSound = document.getElementById('deathSound');
     killSound = document.getElementById('killSound');
-    levelUpSound = document.getElementById('levelUpSound');
     
     // Мобильные элементы управления
     movementJoystick = document.getElementById('movementJoystick');
+    aimJoystick = document.getElementById('aimJoystick');
     if (movementJoystick) {
         joystickHandle = movementJoystick.querySelector('.joystick-handle');
+    }
+    if (aimJoystick) {
+        aimJoystickHandle = aimJoystick.querySelector('.joystick-handle');
     }
     shootButton = document.getElementById('shootButton');
     reloadButton = document.getElementById('reloadButton');
     sprintButton = document.getElementById('sprintButton');
-    weaponButtons = document.querySelectorAll('.weapon-button');
     
-    // Получаем контекст canvas если он существует
+    // Получаем контекст canvas
     if (gameCanvas) {
         ctx = gameCanvas.getContext('2d');
-        // Устанавливаем размер canvas на весь экран
         gameCanvas.width = window.innerWidth;
         gameCanvas.height = window.innerHeight;
     }
@@ -315,7 +251,6 @@ function startGame() {
     
     updatePlayerCounts();
     
-    // Устанавливаем фон
     setBackground(currentCity);
     
     startScreen.style.display = 'none';
@@ -324,12 +259,9 @@ function startGame() {
     
     initGame();
     
-    // Запускаем игровые циклы
     if (gameLoopId) cancelAnimationFrame(gameLoopId);
-    
     gameLoopId = requestAnimationFrame(gameLoop);
     
-    // Запускаем музыку
     if (musicEnabled && backgroundMusic) {
         backgroundMusic.play().catch(e => console.log("Автовоспроизведение заблокировано"));
     }
@@ -340,56 +272,40 @@ function restartGame() {
     
     deathScreen.style.display = 'none';
     
-    // Очищаем игровое состояние
     bullets = [];
     enemyBullets = [];
     enemies = [];
     particles = [];
     
-    // Очищаем анимации и сообщения
     if (animationContainer) animationContainer.innerHTML = '';
     if (textMessages) textMessages.innerHTML = '';
     
-    // Восстанавливаем здоровье игрока
     if (player) {
         player.health = 100;
         player.lastDamageTime = 0;
         player.color = '#4cc9f0';
     }
     
-    // Восстанавливаем патроны
     weapons.rifle.ammo = weapons.rifle.maxAmmo;
     weapons.shotgun.ammo = weapons.shotgun.maxAmmo;
     currentWeapon = 'pistol';
     isReloading = false;
-    lowHealthWarningShown = false;
     
-    // Сбрасываем статистику
     kills = 0;
     startTime = Date.now();
     
-    // Перемещаем игрока в центр
     if (player && gameCanvas) {
         player.x = gameCanvas.width / 2;
         player.y = gameCanvas.height / 2;
     }
     
-    // Создаем новых ботов
     createBots();
     
-    // Обновляем UI
     updateWeaponUI();
-    updateWeaponButtons();
     
-    // Показываем сообщение о перезапуске
-    showMessage("Игра перезапущена!");
-    
-    // Запускаем игру
     gameRunning = true;
     
-    // Запускаем игровые циклы
     if (gameLoopId) cancelAnimationFrame(gameLoopId);
-    
     gameLoopId = requestAnimationFrame(gameLoop);
 }
 
@@ -397,14 +313,13 @@ function restartGame() {
 function initGame() {
     if (!gameCanvas) return;
     
-    // Создаем игрока
     player = {
         id: playerId,
         x: gameCanvas.width / 2,
         y: gameCanvas.height / 2,
-        radius: 15, // Уменьшено для мобильных
+        radius: 15,
         color: '#4cc9f0',
-        speed: 4, // Уменьшено для мобильных
+        speed: 4,
         health: 100,
         maxHealth: 100,
         lastShot: 0,
@@ -414,38 +329,30 @@ function initGame() {
         rotation: 0
     };
     
-    // Создаем ботов
     createBots();
-    
     startTime = Date.now();
     gameRunning = true;
     
-    // Инициализируем звуки
     initSounds();
-    
-    // Настраиваем мобильное управление
     setupMobileControls();
-    
-    // Обновление UI оружия
     updateWeaponUI();
-    updateWeaponButtons();
 }
 
-// Настройка мобильного управления
+// Настройка мобильного управления с двумя джойстиками
 function setupMobileControls() {
-    if (!movementJoystick || !shootButton || !reloadButton || !sprintButton) return;
+    if (!movementJoystick || !aimJoystick || !shootButton || !reloadButton || !sprintButton) return;
     
-    // Джойстик для движения
-    let joystickStartX = 0;
-    let joystickStartY = 0;
-    let joystickRadius = 50;
+    // Настройка левого джойстика (движение)
+    let movementJoystickStartX = 0;
+    let movementJoystickStartY = 0;
+    let movementJoystickRadius = 50;
     
     movementJoystick.addEventListener('touchstart', (e) => {
         e.preventDefault();
         joystickActive = true;
         const rect = movementJoystick.getBoundingClientRect();
-        joystickStartX = rect.left + rect.width / 2;
-        joystickStartY = rect.top + rect.height / 2;
+        movementJoystickStartX = rect.left + rect.width / 2;
+        movementJoystickStartY = rect.top + rect.height / 2;
     });
     
     document.addEventListener('touchmove', (e) => {
@@ -454,24 +361,21 @@ function setupMobileControls() {
         e.preventDefault();
         const touch = e.touches[0];
         
-        let deltaX = touch.clientX - joystickStartX;
-        let deltaY = touch.clientY - joystickStartY;
+        let deltaX = touch.clientX - movementJoystickStartX;
+        let deltaY = touch.clientY - movementJoystickStartY;
         
-        // Ограничиваем движение внутри джойстика
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        if (distance > joystickRadius) {
-            deltaX = (deltaX / distance) * joystickRadius;
-            deltaY = (deltaY / distance) * joystickRadius;
+        if (distance > movementJoystickRadius) {
+            deltaX = (deltaX / distance) * movementJoystickRadius;
+            deltaY = (deltaY / distance) * movementJoystickRadius;
         }
         
-        // Обновляем позицию ручки джойстика
         if (joystickHandle) {
             joystickHandle.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
         }
         
-        // Нормализуем значения для движения
-        joystickX = deltaX / joystickRadius;
-        joystickY = deltaY / joystickRadius;
+        joystickX = deltaX / movementJoystickRadius;
+        joystickY = deltaY / movementJoystickRadius;
     });
     
     document.addEventListener('touchend', (e) => {
@@ -482,6 +386,58 @@ function setupMobileControls() {
         joystickY = 0;
         if (joystickHandle) {
             joystickHandle.style.transform = 'translate(-50%, -50%)';
+        }
+    });
+    
+    // Настройка правого джойстика (прицеливание)
+    let aimJoystickStartX = 0;
+    let aimJoystickStartY = 0;
+    let aimJoystickRadius = 50;
+    
+    aimJoystick.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        aimJoystickActive = true;
+        const rect = aimJoystick.getBoundingClientRect();
+        aimJoystickStartX = rect.left + rect.width / 2;
+        aimJoystickStartY = rect.top + rect.height / 2;
+    });
+    
+    document.addEventListener('touchmove', (e) => {
+        if (!aimJoystickActive) return;
+        
+        e.preventDefault();
+        const touch = e.touches[0];
+        
+        let deltaX = touch.clientX - aimJoystickStartX;
+        let deltaY = touch.clientY - aimJoystickStartY;
+        
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distance > aimJoystickRadius) {
+            deltaX = (deltaX / distance) * aimJoystickRadius;
+            deltaY = (deltaY / distance) * aimJoystickRadius;
+        }
+        
+        if (aimJoystickHandle) {
+            aimJoystickHandle.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
+        }
+        
+        aimJoystickX = deltaX / aimJoystickRadius;
+        aimJoystickY = deltaY / aimJoystickRadius;
+        
+        // Обновляем направление прицеливания
+        if (player) {
+            player.rotation = Math.atan2(aimJoystickY, aimJoystickX);
+        }
+    });
+    
+    document.addEventListener('touchend', (e) => {
+        if (!aimJoystickActive) return;
+        
+        aimJoystickActive = false;
+        aimJoystickX = 0;
+        aimJoystickY = 0;
+        if (aimJoystickHandle) {
+            aimJoystickHandle.style.transform = 'translate(-50%, -50%)';
         }
     });
     
@@ -497,6 +453,24 @@ function setupMobileControls() {
     
     shootButton.addEventListener('touchend', (e) => {
         e.preventDefault();
+    });
+    
+    // Автоматическая стрельба при удержании правого джойстика
+    let autoShootInterval;
+    aimJoystick.addEventListener('touchstart', () => {
+        if (autoShootInterval) clearInterval(autoShootInterval);
+        autoShootInterval = setInterval(() => {
+            if (aimJoystickActive) {
+                shoot();
+            }
+        }, weapons[currentWeapon].fireRate);
+    });
+    
+    aimJoystick.addEventListener('touchend', () => {
+        if (autoShootInterval) {
+            clearInterval(autoShootInterval);
+            autoShootInterval = null;
+        }
     });
     
     // Кнопка перезарядки
@@ -517,56 +491,6 @@ function setupMobileControls() {
         e.preventDefault();
         if (player) player.isSprinting = false;
     });
-    
-    // Кнопки смены оружия
-    weaponButtons.forEach(button => {
-        button.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const weapon = button.dataset.weapon;
-            
-            if (weapon === 'pistol') {
-                currentWeapon = 'pistol';
-            } else if (weapon === 'rifle' && weapons.rifle.ammo > 0) {
-                currentWeapon = 'rifle';
-            } else if (weapon === 'shotgun' && weapons.shotgun.ammo > 0) {
-                currentWeapon = 'shotgun';
-            }
-            
-            updateWeaponUI();
-            updateWeaponButtons();
-        });
-    });
-    
-    // Управление прицеливанием через касание экрана
-    if (gameCanvas) {
-        gameCanvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = gameCanvas.getBoundingClientRect();
-            mouseX = touch.clientX - rect.left;
-            mouseY = touch.clientY - rect.top;
-        });
-        
-        gameCanvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = gameCanvas.getBoundingClientRect();
-            mouseX = touch.clientX - rect.left;
-            mouseY = touch.clientY - rect.top;
-        });
-    }
-}
-
-// Обновление кнопок оружия
-function updateWeaponButtons() {
-    if (!weaponButtons) return;
-    
-    weaponButtons.forEach(button => {
-        button.classList.remove('active');
-        if (button.dataset.weapon === currentWeapon) {
-            button.classList.add('active');
-        }
-    });
 }
 
 function shoot() {
@@ -579,17 +503,15 @@ function shoot() {
     }
     if (Date.now() - player.lastShot < weapon.fireRate) return;
     
-    // Расход патронов
     if (currentWeapon !== 'pistol') {
         weapon.ammo--;
         updateWeaponUI();
-        updateWeaponButtons();
     }
     
-    const angle = Math.atan2(mouseY - player.y, mouseX - player.x);
+    // Используем направление из правого джойстика
+    const angle = player.rotation;
     
     if (currentWeapon === 'shotgun') {
-        // Выстрел дробовика (несколько дробин)
         for (let i = 0; i < weapon.pellets; i++) {
             const spread = (Math.random() - 0.5) * weapon.spread;
             const pelletAngle = angle + spread;
@@ -605,11 +527,7 @@ function shoot() {
                 owner: player.id
             });
         }
-        
-        // Анимация выстрела дробовика
-        createAnimation(player.x, player.y, 'explosion', 40);
     } else {
-        // Обычный выстрел
         bullets.push({
             x: player.x,
             y: player.y,
@@ -620,18 +538,10 @@ function shoot() {
             damage: weapon.damage,
             owner: player.id
         });
-        
-        // Анимация выстрела
-        createAnimation(player.x, player.y, 'explosion', 30);
     }
     
     player.lastShot = Date.now();
-    
-    // Воспроизведение звука выстрела
     playSound(shootSound);
-    
-    // Частицы выстрела
-    createMuzzleFlash(player.x, player.y, angle);
 }
 
 function reloadWeapon() {
@@ -640,14 +550,12 @@ function reloadWeapon() {
     isReloading = true;
     updateWeaponUI();
     
-    // Воспроизведение звука перезарядки
     playSound(reloadSound);
     
     setTimeout(() => {
         weapons[currentWeapon].ammo = weapons[currentWeapon].maxAmmo;
         isReloading = false;
         updateWeaponUI();
-        updateWeaponButtons();
     }, 1500);
 }
 
@@ -666,48 +574,11 @@ function updateWeaponUI() {
     }
 }
 
-function createMuzzleFlash(x, y, angle) {
-    for (let i = 0; i < 8; i++) {
-        particles.push({
-            x: x + Math.cos(angle) * 20,
-            y: y + Math.sin(angle) * 20,
-            vx: (Math.random() - 0.5) * 3,
-            vy: (Math.random() - 0.5) * 3,
-            radius: Math.random() * 2 + 1,
-            color: '#ff9900',
-            life: 15
-        });
-    }
-}
-
-function createBlood(x, y) {
-    // Частицы крови
-    for (let i = 0; i < 10; i++) {
-        particles.push({
-            x: x,
-            y: y,
-            vx: (Math.random() - 0.5) * 6,
-            vy: (Math.random() - 0.5) * 6,
-            radius: Math.random() * 3 + 2,
-            color: '#ff0000',
-            life: 25
-        });
-    }
-    
-    // Анимация брызг крови
-    createAnimation(x, y, 'blood-splash', 60);
-}
-
 function createBots() {
-    const botCount = 3 + Math.floor(Math.random() * 4); // 3-6 ботов для мобильных
+    const botCount = 3 + Math.floor(Math.random() * 4);
     
     for (let i = 0; i < botCount; i++) {
         createBot();
-    }
-    
-    // Показываем сообщение о новой волне
-    if (kills > 0) {
-        showMessage(mediaConfig.messages.newWave);
     }
 }
 
@@ -724,15 +595,15 @@ function createBot() {
         type: botType,
         x: Math.random() * gameCanvas.width,
         y: Math.random() * gameCanvas.height,
-        radius: 12, // Уменьшено для мобильных
+        radius: 12,
         color: getRandomColor(),
-        speed: 0.8 + Math.random() * 1.5, // Уменьшено для мобильных
+        speed: 0.8 + Math.random() * 1.5,
         health: 100,
         maxHealth: 100,
         lastShot: 0,
-        fireRate: 1200 + Math.random() * 1000, // Уменьшена скорость стрельбы
-        detectionRange: 150, // Уменьшено для мобильных
-        attackRange: 200 // Уменьшено для мобильных
+        fireRate: 1200 + Math.random() * 1000,
+        detectionRange: 150,
+        attackRange: 200
     });
 }
 
@@ -765,55 +636,35 @@ function botShoot(bot) {
 function updatePlayer() {
     if (!player || !gameCanvas) return;
     
-    // Скорость движения
     let speed = player.speed;
     if (player.isSprinting) {
         speed *= player.sprintMultiplier;
     }
     
-    // Движение через джойстик
+    // Движение через левый джойстик
     if (joystickActive) {
         player.x += joystickX * speed * 1.5;
         player.y += joystickY * speed * 1.5;
     }
     
-    // Вращение игрока к курсору
-    player.rotation = Math.atan2(mouseY - player.y, mouseX - player.x);
-    
-    // Границы
     player.x = Math.max(player.radius, Math.min(gameCanvas.width - player.radius, player.x));
     player.y = Math.max(player.radius, Math.min(gameCanvas.height - player.radius, player.y));
     
-    // Обновление здоровья на UI
     if (playerHealthFill) {
         playerHealthFill.style.width = `${(player.health / player.maxHealth) * 100}%`;
     }
     
-    // События по уровню здоровья (показывается только один раз)
-    if (player.health < 30 && player.health > 0 && !lowHealthWarningShown) {
-        showMessage(mediaConfig.messages.warning, 'warning');
-        lowHealthWarningShown = true;
-    }
-    
-    // Сбросить флаг, если здоровье восстановилось выше 30
-    if (player.health >= 30) {
-        lowHealthWarningShown = false;
-    }
-    
-    // Проверка смерти игрока
     if (player.health <= 0 && gameRunning) {
         gameRunning = false;
         const survivalTime = Math.floor((Date.now() - startTime) / 1000);
         if (survivalTimeSpan) survivalTimeSpan.textContent = survivalTime;
         if (killsCountSpan) killsCountSpan.textContent = kills;
         
-        // Воспроизведение звука смерти
         playSound(deathSound);
         
         if (deathScreen) deathScreen.style.display = 'block';
     }
     
-    // Мерцание при получении урона
     if (Date.now() - player.lastDamageTime < 200) {
         player.color = '#ff4444';
     } else {
@@ -829,14 +680,12 @@ function updateBullets() {
         bullet.x += Math.cos(bullet.angle) * bullet.speed;
         bullet.y += Math.sin(bullet.angle) * bullet.speed;
         
-        // Удаление пуль за пределами экрана
         if (!gameCanvas || bullet.x < -50 || bullet.x > gameCanvas.width + 50 || 
             bullet.y < -50 || bullet.y > gameCanvas.height + 50) {
             bullets.splice(i, 1);
             continue;
         }
         
-        // Проверка столкновений с врагами
         for (let j = enemies.length - 1; j >= 0; j--) {
             const enemy = enemies[j];
             const dx = bullet.x - enemy.x;
@@ -845,28 +694,15 @@ function updateBullets() {
             
             if (distance < bullet.radius + enemy.radius) {
                 enemy.health -= bullet.damage;
-                createBlood(enemy.x, enemy.y);
                 bullets.splice(i, 1);
                 
-                // Воспроизведение звука попадания
                 playSound(hitSound);
                 
                 if (enemy.health <= 0) {
                     enemies.splice(j, 1);
                     kills++;
                     
-                    // Воспроизведение звука убийства
                     playSound(killSound);
-                    
-                    // События по количеству убийств
-                    if (kills % 3 === 0) {
-                        showMessage(`Убито врагов: ${kills}!`, 'powerup');
-                        playSound(levelUpSound);
-                    }
-                    
-                    if (kills % 5 === 0) {
-                        showMessage(mediaConfig.messages.bossComing, 'warning');
-                    }
                     
                     setTimeout(() => createBot(), 1500);
                 }
@@ -888,7 +724,6 @@ function updateBullets() {
             continue;
         }
         
-        // Проверка столкновения с игроком
         const dx = bullet.x - player.x;
         const dy = bullet.y - player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -896,10 +731,8 @@ function updateBullets() {
         if (distance < bullet.radius + player.radius) {
             player.health -= bullet.damage;
             player.lastDamageTime = Date.now();
-            createBlood(player.x, player.y);
             enemyBullets.splice(i, 1);
             
-            // Воспроизведение звука попадания по игроку
             playSound(hitSound);
         }
     }
@@ -909,24 +742,20 @@ function updateEnemies() {
     if (!player) return;
     
     enemies.forEach(enemy => {
-        // ИИ бота
         const dx = player.x - enemy.x;
         const dy = player.y - enemy.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance < enemy.detectionRange) {
-            // Движение к игроку
             if (distance > 80) {
                 enemy.x += (dx / distance) * enemy.speed;
                 enemy.y += (dy / distance) * enemy.speed;
             }
             
-            // Стрельба
             if (distance < enemy.attackRange && Date.now() - enemy.lastShot > enemy.fireRate) {
                 botShoot(enemy);
             }
         } else {
-            // Случайное блуждание
             if (Math.random() < 0.02) {
                 enemy.randomAngle = Math.random() * Math.PI * 2;
             }
@@ -935,7 +764,6 @@ function updateEnemies() {
                 enemy.x += Math.cos(enemy.randomAngle) * enemy.speed * 0.3;
                 enemy.y += Math.sin(enemy.randomAngle) * enemy.speed * 0.3;
                 
-                // Границы для ботов
                 if (gameCanvas) {
                     enemy.x = Math.max(enemy.radius, Math.min(gameCanvas.width - enemy.radius, enemy.x));
                     enemy.y = Math.max(enemy.radius, Math.min(gameCanvas.height - enemy.radius, enemy.y));
@@ -943,14 +771,13 @@ function updateEnemies() {
             }
         }
         
-        // Столкновение с игроком
         const collisionDist = Math.sqrt(
             Math.pow(player.x - enemy.x, 2) + 
             Math.pow(player.y - enemy.y, 2)
         );
         
         if (collisionDist < player.radius + enemy.radius) {
-            player.health -= 0.5; // Уменьшен урон от столкновения
+            player.health -= 0.5;
             player.lastDamageTime = Date.now();
         }
     });
@@ -964,7 +791,6 @@ function updateParticles() {
         p.y += p.vy;
         p.life--;
         
-        // Замедление
         p.vx *= 0.9;
         p.vy *= 0.9;
         
@@ -977,7 +803,6 @@ function updateParticles() {
 function updateUI() {
     if (!playersList || !player) return;
     
-    // Обновляем список игроков
     playersList.innerHTML = `
         <div class="player-item">
             <div class="player-color" style="background-color: ${player.color}"></div>
@@ -998,7 +823,6 @@ function updateUI() {
 function drawBackground() {
     if (!ctx || !gameCanvas) return;
     
-    // Фоновый градиент
     const gradient = ctx.createLinearGradient(0, 0, gameCanvas.width, gameCanvas.height);
     gradient.addColorStop(0, '#0d1b2a');
     gradient.addColorStop(1, '#1b263b');
@@ -1009,23 +833,19 @@ function drawBackground() {
 function drawPlayer() {
     if (!ctx || !player) return;
     
-    // Тело игрока
     ctx.save();
     ctx.translate(player.x, player.y);
     ctx.rotate(player.rotation);
     
-    // Основной круг
     ctx.beginPath();
     ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
     ctx.fillStyle = player.color;
     ctx.fill();
     
-    // Обводка
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;
     ctx.stroke();
     
-    // Направление (ствол)
     ctx.beginPath();
     ctx.moveTo(10, 0);
     ctx.lineTo(player.radius + 8, 0);
@@ -1035,7 +855,6 @@ function drawPlayer() {
     
     ctx.restore();
     
-    // Полоска здоровья
     const healthWidth = (player.health / player.maxHealth) * (player.radius * 2);
     ctx.fillStyle = player.health > 50 ? '#4CAF50' : player.health > 25 ? '#FF9800' : '#F44336';
     ctx.fillRect(player.x - player.radius, player.y - player.radius - 8, healthWidth, 3);
@@ -1045,18 +864,15 @@ function drawEnemies() {
     if (!ctx) return;
     
     enemies.forEach(enemy => {
-        // Тело врага
         ctx.beginPath();
         ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
         ctx.fillStyle = enemy.color;
         ctx.fill();
         
-        // Обводка
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Глаза (направление взгляда)
         const angleToPlayer = Math.atan2(player.y - enemy.y, player.x - enemy.x);
         const eyeX = enemy.x + Math.cos(angleToPlayer) * 8;
         const eyeY = enemy.y + Math.sin(angleToPlayer) * 8;
@@ -1066,7 +882,6 @@ function drawEnemies() {
         ctx.fillStyle = '#ffffff';
         ctx.fill();
         
-        // Полоска здоровья
         const healthWidth = (enemy.health / enemy.maxHealth) * (enemy.radius * 2);
         ctx.fillStyle = enemy.health > 50 ? '#4CAF50' : enemy.health > 25 ? '#FF9800' : '#F44336';
         ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 6, healthWidth, 3);
@@ -1076,7 +891,6 @@ function drawEnemies() {
 function drawBullets() {
     if (!ctx) return;
     
-    // Пули игрока
     bullets.forEach(bullet => {
         ctx.beginPath();
         ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
@@ -1084,7 +898,6 @@ function drawBullets() {
         ctx.fill();
     });
     
-    // Пули врагов
     enemyBullets.forEach(bullet => {
         ctx.beginPath();
         ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
@@ -1093,21 +906,9 @@ function drawBullets() {
     });
 }
 
-function drawParticles() {
-    if (!ctx) return;
-    
-    particles.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color + Math.floor(p.life / 30 * 255).toString(16).padStart(2, '0');
-        ctx.fill();
-    });
-}
-
 function gameLoop() {
     if (!gameRunning) return;
     
-    // Обновление
     updatePlayer();
     updateBullets();
     updateEnemies();
@@ -1115,11 +916,9 @@ function gameLoop() {
     updateUI();
     updateWeaponUI();
     
-    // Отрисовка
     drawBackground();
     drawEnemies();
     drawBullets();
-    drawParticles();
     drawPlayer();
     
     gameLoopId = requestAnimationFrame(gameLoop);
@@ -1132,13 +931,9 @@ function getRandomColor() {
 
 // Инициализация при загрузке страницы
 window.addEventListener('load', () => {
-    // Сначала инициализируем DOM элементы
     initDOMElements();
-    
-    // Затем определяем устройство (принудительно мобильное)
     detectDevice();
     
-    // Назначаем обработчики событий
     if (startButton) {
         startButton.addEventListener('click', startGame);
     }
@@ -1155,7 +950,6 @@ window.addEventListener('load', () => {
         musicToggle.addEventListener('click', toggleMusic);
     }
     
-    // Выбор города
     if (cityCards) {
         cityCards.forEach(card => {
             card.addEventListener('click', () => {
@@ -1171,14 +965,13 @@ window.addEventListener('load', () => {
     setInterval(updatePlayerCounts, 5000);
 });
 
-// Обработка изменения размера окна и ориентации
+// Обработка изменения размера
 window.addEventListener('resize', () => {
     if (gameCanvas) {
         gameCanvas.width = window.innerWidth;
         gameCanvas.height = window.innerHeight;
         
         if (player) {
-            // Корректируем позицию игрока
             player.x = Math.min(player.x, gameCanvas.width - player.radius);
             player.y = Math.min(player.y, gameCanvas.height - player.radius);
             player.x = Math.max(player.x, player.radius);
@@ -1187,20 +980,10 @@ window.addEventListener('resize', () => {
     }
 });
 
-// Предотвращаем стандартное поведение касаний
+// Предотвращаем стандартное поведение
 document.addEventListener('touchmove', function(e) {
     if (e.target === gameCanvas || e.target.classList.contains('action-button') || 
-        e.target.classList.contains('weapon-button') || e.target === movementJoystick) {
+        e.target === movementJoystick || e.target === aimJoystick) {
         e.preventDefault();
     }
 }, { passive: false });
-
-// Предотвращаем масштабирование при двойном касании
-let lastTouchEnd = 0;
-document.addEventListener('touchend', function(e) {
-    const now = (new Date()).getTime();
-    if (now - lastTouchEnd <= 300) {
-        e.preventDefault();
-    }
-    lastTouchEnd = now;
-}, false);
