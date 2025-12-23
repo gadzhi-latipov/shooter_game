@@ -30,7 +30,7 @@ const mediaConfig = {
     },
     sounds: {
         backgroundMusic: 'audio/background.mp3',
-        shoot: '/shoot.ogg',
+        shoot: 'shoot.ogg',
         reload: 'audio/reload.mp3',
         hit: 'audio/hit.mp3',
         death: 'audio/death.mp3',
