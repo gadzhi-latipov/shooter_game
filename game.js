@@ -69,7 +69,9 @@ const mediaConfig = {
         // Звуки для разного оружия
         pistol: 'audio/pistol.mp3',
         rifle: 'audio/rifle.mp3',
-        shotgun: 'audio/shotgun.mp3'
+        shotgun: 'audio/shotgun.mp3',
+        // Звук смены орудия 
+        weaponSwitch: 'audio/weapon_switch.mp3'
     }
 };
 
@@ -114,6 +116,9 @@ let weaponSwitchButton; // Добавляем кнопку смены оружи
 let backgroundMusic, shootSound, reloadSound, hitSound, deathSound, killSound;
 // Глобальные переменные для звуков оружия
 let pistolSound, rifleSound, shotgunSound;
+let weaponSwitchSound;  // звук смены оружия 
+
+
 
 // Определение устройства
 function detectDevice() {
@@ -159,7 +164,10 @@ function initSounds() {
     } else if (mediaConfig.sounds.shoot) {
         shotgunSound.src = mediaConfig.sounds.shoot;
     }
-    
+    if (mediaConfig.sounds.weaponSwitch && weaponSwitchSound) {
+    weaponSwitchSound.src = mediaConfig.sounds.weaponSwitch;
+    }
+   
     // Настройка громкости
     backgroundMusic.volume = 0.3;
     pistolSound.volume = 0.4;
@@ -169,6 +177,7 @@ function initSounds() {
     hitSound.volume = 0.4;
     deathSound.volume = 0.6;
     killSound.volume = 0.5;
+    weaponSwitchSound.volume = 0.3;
 }
 
 
@@ -310,6 +319,10 @@ function initDOMElements() {
     pistolSound = document.getElementById('pistolSound');
     rifleSound = document.getElementById('rifleSound');
     shotgunSound = document.getElementById('shotgunSound');
+
+    //звук смены оружия 
+    weaponSwitchSound = document.getElementById('weaponSwitchSound');
+
 
 
     // Добавляем функцию для смены звуков оружия (опционально, если нужно менять звуки динамически)
@@ -469,7 +482,11 @@ function switchWeapon() {
             if (weaponSwitchButton) weaponSwitchButton.style.transform = 'scale(1)';
         }, 100);
     }
-    
+    // Воспроизвести звук смены оружия
+if (soundEnabled && weaponSwitchSound) {
+    weaponSwitchSound.currentTime = 0;
+    weaponSwitchSound.play().catch(e => console.log("Ошибка звука смены оружия:", e));
+}
     // Можно добавить короткий звук переключения оружия
     if (soundEnabled) {
         // Быстрое воспроизведение звука клика или переключения
