@@ -333,7 +333,7 @@ function setupMobileControls() {
     // Настройка левого джойстика (движение)
     let movementJoystickStartX = 0;
     let movementJoystickStartY = 0;
-    let movementJoystickRadius = 50;
+    let movementJoystickRadius = 30;
     
     movementJoystick.addEventListener('touchstart', (e) => {
         e.preventDefault();
