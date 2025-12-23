@@ -14,9 +14,40 @@ const serverRooms = {
 
 // Система оружия
 const weapons = {
-    pistol: { name: "Пистолет", damage: 10, fireRate: 300, ammo: Infinity, bulletSpeed: 12, bulletSize: 5, color: "#4cc9f0" },
-    rifle: { name: "Винтовка", damage: 25, fireRate: 500, ammo: 30, maxAmmo: 30, bulletSpeed: 15, bulletSize: 6, color: "#4361ee" },
-    shotgun: { name: "Дробовик", damage: 15, fireRate: 800, ammo: 8, maxAmmo: 8, bulletSpeed: 8, bulletSize: 8, spread: 0.3, pellets: 5, color: "#f72585" }
+    pistol: { 
+        name: "Пистолет", 
+        damage: 10, 
+        fireRate: 300, 
+        ammo: Infinity, 
+        bulletSpeed: 12, 
+        bulletSize: 5, 
+        color: "#4cc9f0",
+        sound: 'pistolSound' // ID audio элемента
+    },
+    rifle: { 
+        name: "Винтовка", 
+        damage: 25, 
+        fireRate: 500, 
+        ammo: 30, 
+        maxAmmo: 30, 
+        bulletSpeed: 15, 
+        bulletSize: 6, 
+        color: "#4361ee",
+        sound: 'rifleSound'
+    },
+    shotgun: { 
+        name: "Дробовик", 
+        damage: 15, 
+        fireRate: 800, 
+        ammo: 8, 
+        maxAmmo: 8, 
+        bulletSpeed: 8, 
+        bulletSize: 8, 
+        spread: 0.3, 
+        pellets: 5, 
+        color: "#f72585",
+        sound: 'shotgunSound'
+    }
 };
 const weaponOrder = ['pistol', 'rifle', 'shotgun'];
 let weaponIndex = 0;
@@ -30,13 +61,18 @@ const mediaConfig = {
     },
     sounds: {
         backgroundMusic: 'audio/background.mp3',
-        shoot: 'audio/shoot.mp3',
+        shoot: 'audio/shoot.mp3', // Общий звук (для обратной совместимости)
         reload: 'audio/reload.mp3',
         hit: 'audio/hit.mp3',
         death: 'audio/death.mp3',
-        kill: 'audio/kill.mp3'
+        kill: 'audio/kill.mp3',
+        // Звуки для разного оружия
+        pistol: 'audio/pistol.mp3',
+        rifle: 'audio/rifle.mp3',
+        shotgun: 'audio/shotgun.mp3'
     }
 };
+
 
 // Глобальные переменные
 let currentCity = null;
@@ -55,6 +91,7 @@ let gameLoopId = null;
 let isMobile = true;
 let soundEnabled = true;
 let musicEnabled = true;
+
 
 // Джойстики
 let joystickActive = false;
@@ -75,6 +112,8 @@ let weaponSwitchButton; // Добавляем кнопку смены оружи
 
 // Аудио элементы
 let backgroundMusic, shootSound, reloadSound, hitSound, deathSound, killSound;
+// Глобальные переменные для звуков оружия
+let pistolSound, rifleSound, shotgunSound;
 
 // Определение устройства
 function detectDevice() {
@@ -86,11 +125,9 @@ function detectDevice() {
 
 // Инициализация звуков
 function initSounds() {
+    // Общие звуки
     if (mediaConfig.sounds.backgroundMusic && backgroundMusic) {
         backgroundMusic.src = mediaConfig.sounds.backgroundMusic;
-    }
-    if (mediaConfig.sounds.shoot && shootSound) {
-        shootSound.src = mediaConfig.sounds.shoot;
     }
     if (mediaConfig.sounds.reload && reloadSound) {
         reloadSound.src = mediaConfig.sounds.reload;
@@ -104,13 +141,91 @@ function initSounds() {
     if (mediaConfig.sounds.kill && killSound) {
         killSound.src = mediaConfig.sounds.kill;
     }
+      // Звуки оружия (используем общий звук по умолчанию если нет специфического)
+    if (mediaConfig.sounds.pistol) {
+        pistolSound.src = mediaConfig.sounds.pistol;
+    } else if (mediaConfig.sounds.shoot) {
+        pistolSound.src = mediaConfig.sounds.shoot;
+    }
     
-    if (backgroundMusic) backgroundMusic.volume = 0.3;
-    if (shootSound) shootSound.volume = 0.5;
-    if (reloadSound) reloadSound.volume = 0.3;
-    if (hitSound) hitSound.volume = 0.4;
-    if (deathSound) deathSound.volume = 0.6;
-    if (killSound) killSound.volume = 0.5;
+    if (mediaConfig.sounds.rifle) {
+        rifleSound.src = mediaConfig.sounds.rifle;
+    } else if (mediaConfig.sounds.shoot) {
+        rifleSound.src = mediaConfig.sounds.shoot;
+    }
+    
+    if (mediaConfig.sounds.shotgun) {
+        shotgunSound.src = mediaConfig.sounds.shotgun;
+    } else if (mediaConfig.sounds.shoot) {
+        shotgunSound.src = mediaConfig.sounds.shoot;
+    }
+    
+    // Настройка громкости
+    backgroundMusic.volume = 0.3;
+    pistolSound.volume = 0.4;
+    rifleSound.volume = 0.5;
+    shotgunSound.volume = 0.6;
+    reloadSound.volume = 0.3;
+    hitSound.volume = 0.4;
+    deathSound.volume = 0.6;
+    killSound.volume = 0.5;
+}
+
+
+// Предзагрузка звуков для плавного геймплея
+function preloadAllSounds() {
+    const soundElements = [
+        pistolSound, rifleSound, shotgunSound,
+        reloadSound, hitSound, deathSound, killSound
+    ];
+    
+    soundElements.forEach(sound => {
+        if (sound) {
+            sound.load();
+        }
+    });
+}
+
+
+
+
+
+// Обновленная функция воспроизведения звука выстрела
+function playWeaponSound(weaponType) {
+    if (!soundEnabled) return;
+    
+    const weapon = weapons[weaponType];
+    let soundElement;
+    
+    switch(weaponType) {
+        case 'pistol':
+            soundElement = pistolSound;
+            break;
+        case 'rifle':
+            soundElement = rifleSound;
+            break;
+        case 'shotgun':
+            soundElement = shotgunSound;
+            break;
+        default:
+            soundElement = shootSound; // Общий звук по умолчанию
+    }
+    
+    if (soundElement) {
+        try {
+            soundElement.currentTime = 0;
+            soundElement.play().catch(e => {
+                console.log(`Ошибка воспроизведения звука ${weaponType}:`, e);
+                // Пробуем общий звук как запасной вариант
+                if (soundElement !== shootSound && shootSound) {
+                    shootSound.currentTime = 0;
+                    shootSound.play().catch(e2 => console.log("Ошибка запасного звука:", e2));
+                }
+            });
+        } catch (error) {
+            console.log(`Ошибка при обращении к звуку ${weaponType}:`, error);
+        }
+    }
 }
 
 // Воспроизведение звука
@@ -183,7 +298,7 @@ function initDOMElements() {
     soundToggle = document.getElementById('soundToggle');
     musicToggle = document.getElementById('musicToggle');
     
-    // Аудио элементы
+     // Аудио элементы
     backgroundMusic = document.getElementById('backgroundMusic');
     shootSound = document.getElementById('shootSound');
     reloadSound = document.getElementById('reloadSound');
@@ -191,6 +306,36 @@ function initDOMElements() {
     deathSound = document.getElementById('deathSound');
     killSound = document.getElementById('killSound');
     
+    // Звуки оружия
+    pistolSound = document.getElementById('pistolSound');
+    rifleSound = document.getElementById('rifleSound');
+    shotgunSound = document.getElementById('shotgunSound');
+
+
+    // Добавляем функцию для смены звуков оружия (опционально, если нужно менять звуки динамически)
+function changeWeaponSound(weaponType, soundUrl) {
+    if (!soundEnabled) return;
+    
+    let soundElement;
+    switch(weaponType) {
+        case 'pistol':
+            soundElement = pistolSound;
+            break;
+        case 'rifle':
+            soundElement = rifleSound;
+            break;
+        case 'shotgun':
+            soundElement = shotgunSound;
+            break;
+        default:
+            return;
+    }
+    
+    if (soundElement && soundUrl) {
+        soundElement.src = soundUrl;
+        soundElement.load();
+    }
+}
     // Мобильные элементы управления
     movementJoystick = document.getElementById('movementJoystick');
     aimJoystick = document.getElementById('aimJoystick');
@@ -324,8 +469,25 @@ function switchWeapon() {
             if (weaponSwitchButton) weaponSwitchButton.style.transform = 'scale(1)';
         }, 100);
     }
+    
+    // Можно добавить короткий звук переключения оружия
+    if (soundEnabled) {
+        // Быстрое воспроизведение звука клика или переключения
+        try {
+            if (shootSound) {
+                shootSound.volume = 0.2;
+                shootSound.currentTime = 0.05; // Начинаем с небольшой задержки для короткого звука
+                shootSound.play().then(() => {
+                    setTimeout(() => {
+                        if (shootSound) shootSound.pause();
+                    }, 100);
+                }).catch(e => console.log("Ошибка звука переключения:", e));
+            }
+        } catch (error) {
+            console.log("Ошибка при переключении оружия:", error);
+        }
+    }
 }
-
 // Настройка мобильного управления с двумя джойстиками
 function setupMobileControls() {
     if (!movementJoystick || !aimJoystick) return;
@@ -467,6 +629,7 @@ function shoot() {
     if (isReloading) return;
     if (weapon.ammo <= 0 && currentWeapon !== 'pistol') {
         isReloading = true;
+        playSound(reloadSound);
         setTimeout(() => {
             weapons[currentWeapon].ammo = weapons[currentWeapon].maxAmmo;
             isReloading = false;
@@ -515,8 +678,11 @@ function shoot() {
     }
     
     player.lastShot = Date.now();
-    playSound(shootSound);
+    
+    // Воспроизводим звук соответствующего оружия
+    playWeaponSound(currentWeapon);
 }
+
 
 function updateWeaponUI() {
     const weapon = weapons[currentWeapon];
