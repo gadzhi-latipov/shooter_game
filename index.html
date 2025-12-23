@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Онлайн Стрелялка - Выбор города</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Стартовый экран -->
+    <div class="screen" id="startScreen">
+        <div class="city-select">
+            <h1>Онлайн Стрелялка</h1>
+            <h2>Выберите город для игры</h2>
+        </div>
+        
+        <div class="cities-container">
+            <div class="city-card" data-city="moscow">
+                <div class="city-icon">🏛️</div>
+                <h3>Москва</h3>
+                <p>Игроков онлайн: <span id="moscow-count">0</span></p>
+            </div>
+            
+            <div class="city-card" data-city="petersburg">
+                <div class="city-icon">🌉</div>
+                <h3>Санкт-Петербург</h3>
+                <p>Игроков онлайн: <span id="petersburg-count">0</span></p>
+            </div>
+        </div>
+        
+        <div class="settings">
+            <button class="sound-toggle" id="soundToggle">🔊 Вкл звук</button>
+            <button class="music-toggle" id="musicToggle">🎵 Вкл музыку</button>
+        </div>
+        
+        <button class="start-button" id="startButton" disabled>Начать игру</button>
+    </div>
+    
+    <!-- Игровой экран -->
+    <div class="screen" id="gameScreen">
+        <div class="game-container">
+            <canvas id="gameCanvas" width="1400" height="700"></canvas>
+            
+            <!-- Фоновое изображение -->
+            <div id="backgroundOverlay"></div>
+            
+            <!-- Анимационные эффекты -->
+            <div id="animationContainer"></div>
+            
+            <!-- Текстовые сообщения -->
+            <div id="textMessages"></div>
+            
+            <div class="game-ui">
+                <div class="player-info">
+                    <div>Город: <span id="currentCity">-</span></div>
+                    <div>Здоровье:</div>
+                    <div class="health-bar">
+                        <div class="health-fill" id="playerHealth"></div>
+                    </div>
+                    <div class="ammo-info">
+                        Патроны: <span id="ammoCount">∞</span>
+                    </div>
+                    <div class="weapon-info">
+                        Оружие: <span id="currentWeapon">Пистолет</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="players-list">
+                <h3>Игроки в комнате:</h3>
+                <div id="playersList"></div>
+            </div>
+            
+            <div class="controls desktop-controls">
+                <p>Управление:</p>
+                <p>WASD - Движение</p>
+                <p>ЛКМ - Стрельба</p>
+                <p>1-3 - Смена оружия</p>
+                <p>R - Перезарядка</p>
+                <p>Shift - Ускорение</p>
+            </div>
+            
+            <!-- Мобильное управление -->
+            <div class="mobile-controls" id="mobileControls">
+                <div class="joystick-container">
+                    <div class="joystick" id="movementJoystick">
+                        <div class="joystick-handle"></div>
+                    </div>
+                    <div class="joystick-label">Движение</div>
+                </div>
+                
+                <div class="action-buttons">
+                    <div class="action-button shoot-button" id="shootButton">🔫</div>
+                    <div class="action-button reload-button" id="reloadButton">↻</div>
+                    <div class="action-button sprint-button" id="sprintButton">⚡</div>
+                </div>
+                
+                <div class="weapon-buttons">
+                    <div class="weapon-button" data-weapon="pistol">1</div>
+                    <div class="weapon-button" data-weapon="rifle">2</div>
+                    <div class="weapon-button" data-weapon="shotgun">3</div>
+                </div>
+            </div>
+            
+            <div class="mini-map">
+                <canvas id="miniMapCanvas" width="200" height="150"></canvas>
+            </div>
+            
+            <div class="death-screen" id="deathScreen">
+                <h2>💀 ВЫ УМЕРЛИ 💀</h2>
+                <p>Вы продержались: <span id="survivalTime">0</span> секунд</p>
+                <p>Убито врагов: <span id="killsCount">0</span></p>
+                <button class="restart-button" id="restartButton">Играть снова</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Аудио элементы -->
+    <audio id="backgroundMusic" loop preload="auto">
+        <source src="" type="audio/mp3">
+        Ваш браузер не поддерживает аудио
+    </audio>
+    
+    <audio id="shootSound" preload="auto">
+        <source src="" type="audio/mp3">
+    </audio>
+    
+    <audio id="reloadSound" preload="auto">
+        <source src="" type="audio/mp3">
+    </audio>
+    
+    <audio id="hitSound" preload="auto">
+        <source src="" type="audio/mp3">
+    </audio>
+    
+    <audio id="deathSound" preload="auto">
+        <source src="" type="audio/mp3">
+    </audio>
+    
+    <audio id="killSound" preload="auto">
+        <source src="" type="audio/mp3">
+    </audio>
+    
+    <audio id="levelUpSound" preload="auto">
+        <source src="" type="audio/mp3">
+    </audio>
+
+    <script src="game.js"></script>
+</body>
+</html>
