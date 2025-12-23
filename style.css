@@ -151,7 +151,7 @@ h2 {
     font-size: 1.1rem;
     border-radius: 25px;
     cursor: pointer;
-    margin-top: 25px;
+    margin-top: 5px;
     transition: all 0.3s ease;
     width: 100%;
     max-width: 320px;
@@ -784,22 +784,3 @@ h2 {
 }
 
 
-
-.start-button {
-    background: linear-gradient(45deg, #f72585, #b5179e);
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    font-size: 1.1rem;
-    border-radius: 25px;
-    cursor: pointer;
-    margin-top: 15px;
-    transition: all 0.3s ease;
-    width: 100%;
-    max-width: 320px;
-}
-
-.start-button:active {
-    transform: scale(0.98);
-    box-shadow: 0 5px 15px rgba(247, 37, 133, 0.4);
-}
