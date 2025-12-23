@@ -741,3 +741,65 @@ h2 {
     margin-top: 12px;
     text-align: center;    
 }
+/* Добавьте в существующий CSS: */
+
+.game-title {
+    text-align: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.start-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 320px;
+}
+
+.info-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    border: 2px solid #4cc9f0;
+    text-align: center;
+    width: 100%;
+}
+
+.info-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.info-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #4cc9f0;
+}
+
+.info-card p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+
+
+.start-button {
+    background: linear-gradient(45deg, #f72585, #b5179e);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 320px;
+}
+
+.start-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 5px 15px rgba(247, 37, 133, 0.4);
+}

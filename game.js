@@ -1,16 +1,4 @@
-// Эмуляция сервера с комнатами
-const serverRooms = {
-    moscow: {
-        name: 'Москва',
-        players: [],
-        maxPlayers: 20
-    },
-    petersburg: {
-        name: 'Санкт-Петербург',
-        players: [],
-        maxPlayers: 20
-    }
-};
+
 
 // Система оружия
 const weapons = {
@@ -53,31 +41,24 @@ const weaponOrder = ['pistol', 'rifle', 'shotgun'];
 let weaponIndex = 0;
 
 
-// МЕДИА-КОНФИГУРАЦИЯ
+// Упрощенная медиа-конфигурация (удаляем города)
 const mediaConfig = {
-    backgrounds: {
-        moscow: 'https://images.unsplash.com/photo-1513326738677-b964603b136d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1400&q=80',
-        petersburg: 'https://images.unsplash.com/photo-1558661093-53d5f71c8d7a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1400&q=80'
-    },
+    background: 'https://images.unsplash.com/photo-1513326738677-b964603b136d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1400&q=80',
     sounds: {
         backgroundMusic: 'audio/background.mp3',
-        shoot: 'audio/shoot.mp3', // Общий звук (для обратной совместимости)
+        shoot: 'audio/shoot.mp3',
         reload: 'audio/reload.mp3',
         hit: 'audio/hit.mp3',
         death: 'audio/death.mp3',
         kill: 'audio/kill.mp3',
-        // Звуки для разного оружия
         pistol: 'audio/pistol.mp3',
         rifle: 'audio/rifle.mp3',
         shotgun: 'audio/shotgun.mp3',
-        // Звук смены орудия 
         weaponSwitch: 'audio/weapon_switch.mp3'
     }
 };
 
-
-// Глобальные переменные
-let currentCity = null;
+// Глобальные переменные (удаляем city-related)
 let player = null;
 let bullets = [];
 let enemyBullets = [];
@@ -94,7 +75,6 @@ let isMobile = true;
 let soundEnabled = true;
 let musicEnabled = true;
 
-
 // Джойстики
 let joystickActive = false;
 let aimJoystickActive = false;
@@ -103,20 +83,20 @@ let joystickY = 0;
 let aimJoystickX = 0;
 let aimJoystickY = 0;
 
-// DOM элементы
-let startScreen, gameScreen, startButton, cityCards, currentCitySpan;
+// DOM элементы (удаляем city-related)
+let startScreen, gameScreen, startButton;
 let playerHealthFill, playersList, deathScreen, survivalTimeSpan, killsCountSpan;
-let restartButton, moscowCount, petersburgCount, ammoCount, currentWeaponSpan;
+let restartButton, ammoCount, currentWeaponSpan;
 let gameCanvas, ctx, backgroundOverlay, animationContainer, textMessages;
 let mobileControls, soundToggle, musicToggle;
 let movementJoystick, aimJoystick, joystickHandle, aimJoystickHandle;
-let weaponSwitchButton; // Добавляем кнопку смены оружия
+let weaponSwitchButton;
+
 
 // Аудио элементы
 let backgroundMusic, shootSound, reloadSound, hitSound, deathSound, killSound;
-// Глобальные переменные для звуков оружия
-let pistolSound, rifleSound, shotgunSound;
-let weaponSwitchSound;  // звук смены оружия 
+let pistolSound, rifleSound, shotgunSound, weaponSwitchSound;
+
 
 
 
@@ -128,8 +108,25 @@ function detectDevice() {
     if (mobileControls) mobileControls.classList.add('active');
 }
 
-// Инициализация звуков
+// Инициализация звуков (обновленная)
 function initSounds() {
+    // Звуки оружия
+    if (mediaConfig.sounds.pistol && pistolSound) {
+        pistolSound.src = mediaConfig.sounds.pistol;
+    }
+    
+    if (mediaConfig.sounds.rifle && rifleSound) {
+        rifleSound.src = mediaConfig.sounds.rifle;
+    }
+    
+    if (mediaConfig.sounds.shotgun && shotgunSound) {
+        shotgunSound.src = mediaConfig.sounds.shotgun;
+    }
+    
+    if (mediaConfig.sounds.weaponSwitch && weaponSwitchSound) {
+        weaponSwitchSound.src = mediaConfig.sounds.weaponSwitch;
+    }
+    
     // Общие звуки
     if (mediaConfig.sounds.backgroundMusic && backgroundMusic) {
         backgroundMusic.src = mediaConfig.sounds.backgroundMusic;
@@ -146,27 +143,6 @@ function initSounds() {
     if (mediaConfig.sounds.kill && killSound) {
         killSound.src = mediaConfig.sounds.kill;
     }
-      // Звуки оружия (используем общий звук по умолчанию если нет специфического)
-    if (mediaConfig.sounds.pistol) {
-        pistolSound.src = mediaConfig.sounds.pistol;
-    } else if (mediaConfig.sounds.shoot) {
-        pistolSound.src = mediaConfig.sounds.shoot;
-    }
-    
-    if (mediaConfig.sounds.rifle) {
-        rifleSound.src = mediaConfig.sounds.rifle;
-    } else if (mediaConfig.sounds.shoot) {
-        rifleSound.src = mediaConfig.sounds.shoot;
-    }
-    
-    if (mediaConfig.sounds.shotgun) {
-        shotgunSound.src = mediaConfig.sounds.shotgun;
-    } else if (mediaConfig.sounds.shoot) {
-        shotgunSound.src = mediaConfig.sounds.shoot;
-    }
-    if (mediaConfig.sounds.weaponSwitch && weaponSwitchSound) {
-    weaponSwitchSound.src = mediaConfig.sounds.weaponSwitch;
-    }
    
     // Настройка громкости
     backgroundMusic.volume = 0.3;
@@ -177,9 +153,14 @@ function initSounds() {
     hitSound.volume = 0.4;
     deathSound.volume = 0.6;
     killSound.volume = 0.5;
-    weaponSwitchSound.volume = 0.3;
+    weaponSwitchSound.volume = 0.5;
 }
-
+// Установка фонового изображения (упрощенная)
+function setBackground() {
+    if (backgroundOverlay && mediaConfig.background) {
+        backgroundOverlay.style.backgroundImage = `url('${mediaConfig.background}')`;
+    }
+}
 
 // Предзагрузка звуков для плавного геймплея
 function preloadAllSounds() {
@@ -269,34 +250,21 @@ function toggleMusic() {
     }
 }
 
-// Установка фонового изображения
-function setBackground(city) {
-    if (backgroundOverlay && mediaConfig.backgrounds[city]) {
-        backgroundOverlay.style.backgroundImage = `url('${mediaConfig.backgrounds[city]}')`;
-    }
-}
 
-// Обновление счетчиков игроков
-function updatePlayerCounts() {
-    if (moscowCount) moscowCount.textContent = serverRooms.moscow.players.length;
-    if (petersburgCount) petersburgCount.textContent = serverRooms.petersburg.players.length;
-}
 
-// Инициализация DOM элементов
+
+
+// Инициализация DOM элементов (упрощенная)
 function initDOMElements() {
     startScreen = document.getElementById('startScreen');
     gameScreen = document.getElementById('gameScreen');
     startButton = document.getElementById('startButton');
-    cityCards = document.querySelectorAll('.city-card');
-    currentCitySpan = document.getElementById('currentCity');
     playerHealthFill = document.getElementById('playerHealth');
     playersList = document.getElementById('playersList');
     deathScreen = document.getElementById('deathScreen');
     survivalTimeSpan = document.getElementById('survivalTime');
     killsCountSpan = document.getElementById('killsCount');
     restartButton = document.getElementById('restartButton');
-    moscowCount = document.getElementById('moscow-count');
-    petersburgCount = document.getElementById('petersburg-count');
     ammoCount = document.getElementById('ammoCount');
     currentWeaponSpan = document.getElementById('currentWeapon');
     gameCanvas = document.getElementById('gameCanvas');
@@ -307,7 +275,7 @@ function initDOMElements() {
     soundToggle = document.getElementById('soundToggle');
     musicToggle = document.getElementById('musicToggle');
     
-     // Аудио элементы
+    // Аудио элементы
     backgroundMusic = document.getElementById('backgroundMusic');
     shootSound = document.getElementById('shootSound');
     reloadSound = document.getElementById('reloadSound');
@@ -319,44 +287,36 @@ function initDOMElements() {
     pistolSound = document.getElementById('pistolSound');
     rifleSound = document.getElementById('rifleSound');
     shotgunSound = document.getElementById('shotgunSound');
-
-    //звук смены оружия 
     weaponSwitchSound = document.getElementById('weaponSwitchSound');
+    
+    // Мобильные элементы управления
+    movementJoystick = document.getElementById('movementJoystick');
+    aimJoystick = document.getElementById('aimJoystick');
+    weaponSwitchButton = document.getElementById('weaponSwitchButton');
+      if (movementJoystick) {
+        joystickHandle = movementJoystick.querySelector('.joystick-handle');
+    }
+    if (aimJoystick) {
+        aimJoystickHandle = aimJoystick.querySelector('.joystick-handle');
+    }
+    
+    // Получаем контекст canvas
+    if (gameCanvas) {
+        ctx = gameCanvas.getContext('2d');
+        gameCanvas.width = window.innerWidth;
+        gameCanvas.height = window.innerHeight;
+    }
 
 // В конце initDOMElements() добавьте:
 initSounds(); // Инициализировать звуки
 preloadAllSounds(); // Предзагрузить все звуки
 
-     // Добавляем функцию для смены звуков оружия (опционально, если нужно менять звуки динамически)
-     function changeWeaponSound(weaponType, soundUrl) {
-        if (!soundEnabled) return;
-        
-        let soundElement;
-        switch(weaponType) {
-        case 'pistol':
-            soundElement = pistolSound;
-            break;
-        case 'rifle':
-            soundElement = rifleSound;
-            break;
-        case 'shotgun':
-            soundElement = shotgunSound;
-            break;
-        default:
-            return;
-    }
-    
-    if (soundElement && soundUrl) {
-        soundElement.src = soundUrl;
-        soundElement.load();
-    }
-}
-    // Мобильные элементы управления
+      // Мобильные элементы управления
     movementJoystick = document.getElementById('movementJoystick');
     aimJoystick = document.getElementById('aimJoystick');
-    weaponSwitchButton = document.getElementById('weaponSwitchButton'); // Инициализируем кнопку
+    weaponSwitchButton = document.getElementById('weaponSwitchButton');
     
-    if (movementJoystick) {
+     if (movementJoystick) {
         joystickHandle = movementJoystick.querySelector('.joystick-handle');
     }
     if (aimJoystick) {
@@ -371,25 +331,16 @@ preloadAllSounds(); // Предзагрузить все звуки
     }
 }
 
-// Начало игры
+// Начало игры (упрощенная)
 function startGame() {
-    if (!currentCity || !gameScreen || !startScreen) return;
+    if (!gameScreen || !startScreen) return;
     
     playerId = 'player_' + Date.now() + Math.random();
     
-    serverRooms[currentCity].players.push({
-        id: playerId,
-        name: `Игрок_${Math.floor(Math.random() * 1000)}`,
-        health: 100
-    });
-    
-    updatePlayerCounts();
-    
-    setBackground(currentCity);
+    setBackground();
     
     startScreen.style.display = 'none';
     gameScreen.style.display = 'flex';
-    if (currentCitySpan) currentCitySpan.textContent = serverRooms[currentCity].name;
     
     initGame();
     
@@ -400,6 +351,7 @@ function startGame() {
         backgroundMusic.play().catch(e => console.log("Автовоспроизведение заблокировано"));
     }
 }
+
 
 function restartGame() {
     if (!deathScreen) return;
@@ -471,17 +423,23 @@ function initGame() {
     updateWeaponUI();
 }
 
-// Функция смены оружия
-
+// Функция смены оружия (исправленная)
 function switchWeapon() {
+    console.log("switchWeapon вызван");
     weaponIndex = (weaponIndex + 1) % weaponOrder.length;
     currentWeapon = weaponOrder[weaponIndex];
+    console.log("Новое оружие:", currentWeapon);
+    
     updateWeaponUI();
     
     // Воспроизвести звук смены оружия
+    console.log("soundEnabled:", soundEnabled, "weaponSwitchSound:", weaponSwitchSound);
     if (soundEnabled && weaponSwitchSound) {
+        console.log("Пытаюсь воспроизвести weaponSwitchSound");
         weaponSwitchSound.currentTime = 0;
-        weaponSwitchSound.play().catch(e => console.log("Ошибка звука смены оружия:", e));
+        weaponSwitchSound.play()
+            .then(() => console.log("Звук смены оружия воспроизведен успешно"))
+            .catch(e => console.log("Ошибка воспроизведения weaponSwitchSound:", e));
     }
     
     // Визуальная обратная связь
@@ -1064,7 +1022,7 @@ function getRandomColor() {
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
-// Инициализация при загрузке страницы
+// Инициализация при загрузке страницы (упрощенная)
 window.addEventListener('load', () => {
     initDOMElements();
     detectDevice();
@@ -1085,20 +1043,8 @@ window.addEventListener('load', () => {
         musicToggle.addEventListener('click', toggleMusic);
     }
     
-    if (cityCards) {
-        cityCards.forEach(card => {
-            card.addEventListener('click', () => {
-                cityCards.forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-                currentCity = card.dataset.city;
-                if (startButton) startButton.disabled = false;
-                console.log('Выбран город:', currentCity); // Для отладки
-            });
-        });
-    }
-    
-    updatePlayerCounts();
-    setInterval(updatePlayerCounts, 5000);
+    // Удаляем все city-related обработчики и обновления счетчиков
+    initSounds();
 });
 
 // Обработка изменения размера
