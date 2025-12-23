@@ -406,7 +406,7 @@ function initGame() {
         y: gameCanvas.height / 2,
         radius: 15,
         color: '#4cc9f0',
-        speed: 0.5,
+        speed: 1,
         health: 100,
         maxHealth: 100,
         lastShot: 0,
