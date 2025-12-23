@@ -14,38 +14,13 @@ const serverRooms = {
 
 // Система оружия
 const weapons = {
-    pistol: {
-        name: "Пистолет",
-        damage: 10,
-        fireRate: 300,
-        ammo: Infinity,
-        bulletSpeed: 12,
-        bulletSize: 5,
-        color: "#4cc9f0"
-    },
-    rifle: {
-        name: "Винтовка",
-        damage: 25,
-        fireRate: 500,
-        ammo: 30,
-        maxAmmo: 30,
-        bulletSpeed: 15,
-        bulletSize: 6,
-        color: "#4361ee"
-    },
-    shotgun: {
-        name: "Дробовик",
-        damage: 15,
-        fireRate: 800,
-        ammo: 8,
-        maxAmmo: 8,
-        bulletSpeed: 8,
-        bulletSize: 8,
-        spread: 0.3,
-        pellets: 5,
-        color: "#f72585"
-    }
+    pistol: { name: "Пистолет", damage: 10, fireRate: 300, ammo: Infinity, bulletSpeed: 12, bulletSize: 5, color: "#4cc9f0" },
+    rifle: { name: "Винтовка", damage: 25, fireRate: 500, ammo: 30, maxAmmo: 30, bulletSpeed: 15, bulletSize: 6, color: "#4361ee" },
+    shotgun: { name: "Дробовик", damage: 15, fireRate: 800, ammo: 8, maxAmmo: 8, bulletSpeed: 8, bulletSize: 8, spread: 0.3, pellets: 5, color: "#f72585" }
 };
+const weaponOrder = ['pistol', 'rifle', 'shotgun'];
+let weaponIndex = 0;
+
 
 // МЕДИА-КОНФИГУРАЦИЯ
 const mediaConfig = {
@@ -96,7 +71,7 @@ let restartButton, moscowCount, petersburgCount, ammoCount, currentWeaponSpan;
 let gameCanvas, ctx, backgroundOverlay, animationContainer, textMessages;
 let mobileControls, soundToggle, musicToggle;
 let movementJoystick, aimJoystick, joystickHandle, aimJoystickHandle;
-let shootButton, reloadButton, sprintButton;
+let weaponSwitchButton; // Добавляем кнопку смены оружия
 
 // Аудио элементы
 let backgroundMusic, shootSound, reloadSound, hitSound, deathSound, killSound;
@@ -219,15 +194,14 @@ function initDOMElements() {
     // Мобильные элементы управления
     movementJoystick = document.getElementById('movementJoystick');
     aimJoystick = document.getElementById('aimJoystick');
+    weaponSwitchButton = document.getElementById('weaponSwitchButton'); // Инициализируем кнопку
+    
     if (movementJoystick) {
         joystickHandle = movementJoystick.querySelector('.joystick-handle');
     }
     if (aimJoystick) {
         aimJoystickHandle = aimJoystick.querySelector('.joystick-handle');
     }
-    shootButton = document.getElementById('shootButton');
-    reloadButton = document.getElementById('reloadButton');
-    sprintButton = document.getElementById('sprintButton');
     
     // Получаем контекст canvas
     if (gameCanvas) {
@@ -289,6 +263,7 @@ function restartGame() {
     weapons.rifle.ammo = weapons.rifle.maxAmmo;
     weapons.shotgun.ammo = weapons.shotgun.maxAmmo;
     currentWeapon = 'pistol';
+    weaponIndex = 0;
     isReloading = false;
     
     kills = 0;
@@ -324,8 +299,6 @@ function initGame() {
         maxHealth: 100,
         lastShot: 0,
         lastDamageTime: 0,
-        isSprinting: false,
-        sprintMultiplier: 1.5,
         rotation: 0
     };
     
@@ -338,9 +311,24 @@ function initGame() {
     updateWeaponUI();
 }
 
+// Функция смены оружия
+function switchWeapon() {
+    weaponIndex = (weaponIndex + 1) % weaponOrder.length;
+    currentWeapon = weaponOrder[weaponIndex];
+    updateWeaponUI();
+    
+    // Визуальная обратная связь
+    if (weaponSwitchButton) {
+        weaponSwitchButton.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            if (weaponSwitchButton) weaponSwitchButton.style.transform = 'scale(1)';
+        }, 100);
+    }
+}
+
 // Настройка мобильного управления с двумя джойстиками
 function setupMobileControls() {
-    if (!movementJoystick || !aimJoystick || !shootButton || !reloadButton || !sprintButton) return;
+    if (!movementJoystick || !aimJoystick) return;
     
     // Настройка левого джойстика (движение)
     let movementJoystickStartX = 0;
@@ -389,10 +377,11 @@ function setupMobileControls() {
         }
     });
     
-    // Настройка правого джойстика (прицеливание)
+    // Настройка правого джойстика (прицеливание и автострельба)
     let aimJoystickStartX = 0;
     let aimJoystickStartY = 0;
     let aimJoystickRadius = 50;
+    let autoShootInterval;
     
     aimJoystick.addEventListener('touchstart', (e) => {
         e.preventDefault();
@@ -400,6 +389,14 @@ function setupMobileControls() {
         const rect = aimJoystick.getBoundingClientRect();
         aimJoystickStartX = rect.left + rect.width / 2;
         aimJoystickStartY = rect.top + rect.height / 2;
+        
+        // Автоматическая стрельба при удержании джойстика
+        if (autoShootInterval) clearInterval(autoShootInterval);
+        autoShootInterval = setInterval(() => {
+            if (aimJoystickActive && (Math.abs(aimJoystickX) > 0.1 || Math.abs(aimJoystickY) > 0.1)) {
+                shoot();
+            }
+        }, weapons[currentWeapon].fireRate);
     });
     
     document.addEventListener('touchmove', (e) => {
@@ -439,58 +436,29 @@ function setupMobileControls() {
         if (aimJoystickHandle) {
             aimJoystickHandle.style.transform = 'translate(-50%, -50%)';
         }
-    });
-    
-    // Кнопка стрельбы
-    shootButton.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        shoot();
-    });
-    
-    shootButton.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-    });
-    
-    shootButton.addEventListener('touchend', (e) => {
-        e.preventDefault();
-    });
-    
-    // Автоматическая стрельба при удержании правого джойстика
-    let autoShootInterval;
-    aimJoystick.addEventListener('touchstart', () => {
-        if (autoShootInterval) clearInterval(autoShootInterval);
-        autoShootInterval = setInterval(() => {
-            if (aimJoystickActive) {
-                shoot();
-            }
-        }, weapons[currentWeapon].fireRate);
-    });
-    
-    aimJoystick.addEventListener('touchend', () => {
+        
+        // Останавливаем автострельбу
         if (autoShootInterval) {
             clearInterval(autoShootInterval);
             autoShootInterval = null;
         }
     });
     
-    // Кнопка перезарядки
-    reloadButton.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (currentWeapon !== 'pistol' && weapons[currentWeapon].ammo < weapons[currentWeapon].maxAmmo) {
-            reloadWeapon();
-        }
-    });
-    
-    // Кнопка ускорения
-    sprintButton.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (player) player.isSprinting = true;
-    });
-    
-    sprintButton.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        if (player) player.isSprinting = false;
-    });
+    // Кнопка смены оружия
+    if (weaponSwitchButton) {
+        weaponSwitchButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            switchWeapon();
+        });
+        
+        weaponSwitchButton.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        });
+        
+        weaponSwitchButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+        });
+    }
 }
 
 function shoot() {
@@ -498,7 +466,12 @@ function shoot() {
     
     if (isReloading) return;
     if (weapon.ammo <= 0 && currentWeapon !== 'pistol') {
-        reloadWeapon();
+        isReloading = true;
+        setTimeout(() => {
+            weapons[currentWeapon].ammo = weapons[currentWeapon].maxAmmo;
+            isReloading = false;
+            updateWeaponUI();
+        }, 1500);
         return;
     }
     if (Date.now() - player.lastShot < weapon.fireRate) return;
@@ -511,6 +484,7 @@ function shoot() {
     // Используем направление из правого джойстика
     const angle = player.rotation;
     
+    // Стрельба в зависимости от типа оружия
     if (currentWeapon === 'shotgun') {
         for (let i = 0; i < weapon.pellets; i++) {
             const spread = (Math.random() - 0.5) * weapon.spread;
@@ -542,21 +516,6 @@ function shoot() {
     
     player.lastShot = Date.now();
     playSound(shootSound);
-}
-
-function reloadWeapon() {
-    if (isReloading || currentWeapon === 'pistol') return;
-    
-    isReloading = true;
-    updateWeaponUI();
-    
-    playSound(reloadSound);
-    
-    setTimeout(() => {
-        weapons[currentWeapon].ammo = weapons[currentWeapon].maxAmmo;
-        isReloading = false;
-        updateWeaponUI();
-    }, 1500);
 }
 
 function updateWeaponUI() {
@@ -637,9 +596,6 @@ function updatePlayer() {
     if (!player || !gameCanvas) return;
     
     let speed = player.speed;
-    if (player.isSprinting) {
-        speed *= player.sprintMultiplier;
-    }
     
     // Движение через левый джойстик
     if (joystickActive) {
@@ -647,13 +603,21 @@ function updatePlayer() {
         player.y += joystickY * speed * 1.5;
     }
     
+    // Поворот через правый джойстик
+    if (aimJoystickActive) {
+        player.rotation = Math.atan2(aimJoystickY, aimJoystickX);
+    }
+    
+    // Ограничение движения в пределах canvas
     player.x = Math.max(player.radius, Math.min(gameCanvas.width - player.radius, player.x));
     player.y = Math.max(player.radius, Math.min(gameCanvas.height - player.radius, player.y));
     
+    // Обновление UI здоровья
     if (playerHealthFill) {
         playerHealthFill.style.width = `${(player.health / player.maxHealth) * 100}%`;
     }
     
+    // Проверка смерти игрока
     if (player.health <= 0 && gameRunning) {
         gameRunning = false;
         const survivalTime = Math.floor((Date.now() - startTime) / 1000);
@@ -665,6 +629,7 @@ function updatePlayer() {
         if (deathScreen) deathScreen.style.display = 'block';
     }
     
+    // Эффект получения урона
     if (Date.now() - player.lastDamageTime < 200) {
         player.color = '#ff4444';
     } else {
@@ -957,6 +922,7 @@ window.addEventListener('load', () => {
                 card.classList.add('selected');
                 currentCity = card.dataset.city;
                 if (startButton) startButton.disabled = false;
+                console.log('Выбран город:', currentCity); // Для отладки
             });
         });
     }
