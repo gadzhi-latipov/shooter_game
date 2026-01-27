@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Мобильная Стрелялка</title>
+    <title>Мобильная Стрелялка - Приключение</title>
     <link rel="stylesheet" href="style.css">
     <style>
         body, html {
@@ -22,37 +22,123 @@
     <div class="screen" id="startScreen">
         <div class="game-title">
             <h1>Мобильная Стрелялка</h1>
-            <h2>Выживи как можно дольше!</h2>
+            <h2>Многолокационное приключение!</h2>
         </div>
         
         <div class="start-info">
             <div class="info-card">
-                <div class="info-icon">🎯</div>
-                <h3>Цель игры</h3>
-                <p>Уничтожай врагов и выживай как можно дольше!</p>
+                <div class="info-icon">🗺️</div>
+                <h3>3 Локации</h3>
+                <p>Лес, Город, Пустыня - исследуй их все!</p>
             </div>
             
             <div class="info-card">
-                <div class="info-icon">🎮</div>
-                <h3>Управление</h3>
-                <p>Используй джойстики для движения и стрельбы</p>
+                <div class="info-icon">👤</div>
+                <h3>Кастомизация</h3>
+                <p>4 уникальных персонажа на выбор</p>
             </div>
             
             <div class="info-card">
-                <div class="info-icon">🔫</div>
-                <h3>Оружие</h3>
-                <p>Меняй оружие для эффективного боя</p>
+                <div class="info-icon">💬</div>
+                <h3>Диалоги</h3>
+                <p>Общайся с NPC и торговцами</p>
             </div>
-        </div>
-          <button class="start-button" id="startButton">Начать игру</button>
-    </div>
-    
-        <div class="settings">
-            <!-- <button class="sound-toggle" id="soundToggle">🔊 Вкл звук</button> -->
-            <!-- <button class="music-toggle" id="musicToggle">🎵 Вкл музыку</button> -->
         </div>
         
-      
+        <!-- Меню выбора скина -->
+        <div class="skins-menu">
+            <h3>Выберите персонажа:</h3>
+            <div class="skin-grid" id="skinGrid">
+                <!-- Заполняется JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Выбор сложности -->
+        <div class="difficulty-menu">
+            <h3>Сложность:</h3>
+            <div class="difficulty-buttons">
+                <button class="difficulty-btn" data-difficulty="easy">Легкая</button>
+                <button class="difficulty-btn active" data-difficulty="normal">Нормальная</button>
+                <button class="difficulty-btn" data-difficulty="hard">Сложная</button>
+            </div>
+        </div>
+        
+        <div class="start-controls">
+            <button class="start-button" id="startButton">Начать игру</button>
+            <button class="settings-button" id="settingsButton">⚙️ Настройки</button>
+        </div>
+        
+        <div class="settings">
+            <button class="sound-toggle" id="soundToggle">🔊 Вкл звук</button>
+            <button class="music-toggle" id="musicToggle">🎵 Вкл музыку</button>
+        </div>
+    </div>
+    
+    <!-- Экран настроек -->
+    <div class="screen" id="settingsScreen">
+        <div class="settings-container">
+            <h2>Настройки игры</h2>
+            
+            <div class="setting-group">
+                <h3>🔧 Управление</h3>
+                <div class="setting-option">
+                    <span>Чувствительность джойстика:</span>
+                    <input type="range" id="joystickSensitivity" min="1" max="10" value="5">
+                    <span id="sensitivityValue">5</span>
+                </div>
+                <div class="setting-option">
+                    <span>Автострельба:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="autoShootToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <h3>🎨 Графика</h3>
+                <div class="setting-option">
+                    <span>Качество частиц:</span>
+                    <select id="particleQuality">
+                        <option value="low">Низкое</option>
+                        <option value="medium" selected>Среднее</option>
+                        <option value="high">Высокое</option>
+                    </select>
+                </div>
+                <div class="setting-option">
+                    <span>Эффекты:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="effectsToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <h3>🎮 Игровой процесс</h3>
+                <div class="setting-option">
+                    <span>Сложность врагов:</span>
+                    <select id="enemyDifficulty">
+                        <option value="easy">Легкая</option>
+                        <option value="normal" selected>Нормальная</option>
+                        <option value="hard">Сложная</option>
+                    </select>
+                </div>
+                <div class="setting-option">
+                    <span>Подсказки:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="hintsToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="settings-buttons">
+                <button class="back-button" id="backButton">← Назад</button>
+                <button class="save-button" id="saveSettings">Сохранить</button>
+            </div>
+        </div>
+    </div>
     
     <!-- Игровой экран -->
     <div class="screen" id="gameScreen">
@@ -68,24 +154,54 @@
             <!-- Текстовые сообщения -->
             <div id="textMessages"></div>
             
+            <!-- UI локации -->
+            <div class="location-ui" id="locationUI"></div>
+            
+            <!-- Игровой UI -->
             <div class="game-ui">
                 <div class="player-info">
-                    <div>Здоровье:</div>
+                    <div class="health-info">
+                        <div class="health-icon">❤️</div>
+                        <div class="health-text" id="playerHealthText">100</div>
+                    </div>
                     <div class="health-bar">
                         <div class="health-fill" id="playerHealth"></div>
                     </div>
                     <div class="ammo-info">
-                        Патроны: <span id="ammoCount">∞</span>
+                        <div class="ammo-icon">🔫</div>
+                        <div class="ammo-text" id="ammoCount">∞</div>
                     </div>
                     <div class="weapon-info">
-                        Оружие: <span id="currentWeapon">Пистолет</span>
+                        <div class="weapon-icon" id="weaponIcon">🔫</div>
+                        <div class="weapon-text" id="currentWeapon">Пистолет</div>
                     </div>
+                    <div class="keys-info" id="keysInfo">
+                        🔑 <span id="keysCount">0</span>
+                    </div>
+                </div>
+                
+                <div class="mission-info" id="missionInfo">
+                    <div class="mission-icon">🎯</div>
+                    <div class="mission-text">Уничтожьте всех врагов!</div>
                 </div>
             </div>
             
+            <!-- Список игроков -->
             <div class="players-list">
-                <h3>Игроки:</h3>
+                <h3>📍 Текущая локация: <span id="currentLocationName">Лес</span></h3>
+                <div class="enemies-counter">
+                    <div class="enemies-icon">👥</div>
+                    <div class="enemies-text">Врагов: <span id="enemiesCount">0</span>/<span id="totalEnemies">0</span></div>
+                </div>
                 <div id="playersList"></div>
+            </div>
+            
+            <!-- Пауза меню -->
+            <div class="pause-menu" id="pauseMenu">
+                <h2>⏸️ Пауза</h2>
+                <button class="pause-option" id="resumeButton">Продолжить</button>
+                <button class="pause-option" id="pauseSettings">Настройки</button>
+                <button class="pause-option" id="mainMenuButton">Главное меню</button>
             </div>
             
             <!-- Мобильное управление -->
@@ -109,16 +225,40 @@
                 <!-- Кнопки действий -->
                 <div class="action-buttons">
                     <div class="action-button weapon-switch-button" id="weaponSwitchButton">
-                        🔄<span class="weapon-switch-label">Сменить оружие</span>
+                        🔄<span class="weapon-switch-label">Оружие</span>
+                    </div>
+                    <div class="action-button interact-button" id="interactButton">
+                        ✋<span class="interact-label">Взаимодей.</span>
+                    </div>
+                    <div class="action-button pause-button" id="pauseButton">
+                        ⏸️<span class="pause-label">Пауза</span>
                     </div>
                 </div>
             </div>
             
+            <!-- Экран смерти -->
             <div class="death-screen" id="deathScreen">
                 <h2>💀 ВЫ УМЕРЛИ 💀</h2>
-                <p>Вы продержались: <span id="survivalTime">0</span> сек</p>
-                <p>Убито врагов: <span id="killsCount">0</span></p>
+                <div class="death-stats">
+                    <div class="stat">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-value">Время: <span id="survivalTime">0</span> сек</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value">Убито: <span id="killsCount">0</span></div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon">📍</div>
+                        <div class="stat-value">Локаций: <span id="locationsCleared">0</span></div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-icon">🔑</div>
+                        <div class="stat-value">Ключей: <span id="keysCollected">0</span></div>
+                    </div>
+                </div>
                 <button class="restart-button" id="restartButton">Играть снова</button>
+                <button class="menu-button" id="deathMenuButton">Главное меню</button>
             </div>
         </div>
     </div>
@@ -162,6 +302,22 @@
     
     <audio id="weaponSwitchSound" preload="auto">
         <source src="audio/weapon_switch.mp3" type="audio/mp3">
+    </audio>
+    
+    <audio id="itemPickupSound" preload="auto">
+        <source src="audio/item_pickup.mp3" type="audio/mp3">
+    </audio>
+    
+    <audio id="healSound" preload="auto">
+        <source src="audio/heal.mp3" type="audio/mp3">
+    </audio>
+    
+    <audio id="levelUpSound" preload="auto">
+        <source src="audio/level_up.mp3" type="audio/mp3">
+    </audio>
+    
+    <audio id="transitionSound" preload="auto">
+        <source src="audio/transition.mp3" type="audio/mp3">
     </audio>
 
     <script src="game.js"></script>
